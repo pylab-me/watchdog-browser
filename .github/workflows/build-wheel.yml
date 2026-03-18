@@ -1,11 +1,15 @@
 name: build-wheel
 
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - main
-  pull_request:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -39,4 +43,14 @@ jobs:
         with:
           name: watchdog-browser-wheel
           path: dist/*.whl
+          retention-days: 3
 
+      - name: 📦 Pack & Release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "Latest Build"
+          body: "Automated build. Updated: ${{ github.event.head_commit.timestamp }}"
+          prerelease: true
+          files: dist/*.whl
