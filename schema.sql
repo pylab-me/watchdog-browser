@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS cookie_refresh_tasks (
   enabled BOOLEAN NOT NULL DEFAULT TRUE,
   wait_until TEXT NOT NULL DEFAULT 'networkidle',
   settle_time_ms INTEGER NOT NULL DEFAULT 3000,
+  remark TEXT NOT NULL DEFAULT '',
   last_refreshed_at TIMESTAMPTZ,
   last_error TEXT NOT NULL DEFAULT '',
   updated_at TIMESTAMPTZ,

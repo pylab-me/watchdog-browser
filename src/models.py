@@ -38,6 +38,7 @@ class CookieRefreshTask:
     enabled: bool = True
     wait_until: str = "networkidle"
     settle_time_ms: int = 3000
+    remark: str = ""
     last_refreshed_at: Optional[datetime] = None
     last_error: str = ""
 
@@ -74,6 +75,7 @@ class CookieRefreshTask:
             enabled=bool(row.get("enabled", 1)),
             wait_until=str(row.get("wait_until") or "networkidle"),
             settle_time_ms=int(row.get("settle_time_ms") or 3000),
+            remark=str(row.get("remark") or ""),
             last_refreshed_at=_coerce_optional_datetime(row.get("last_refreshed_at")),
             last_error=str(row.get("last_error") or ""),
         )

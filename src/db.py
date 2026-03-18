@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 from engine import get_engine
 
 from .models import CookieRefreshTask, ensure_utc, utc_now
+from .state import storage_state_to_headers
 
 
 def _sql_text(query: str):
@@ -49,6 +50,7 @@ class TaskRepository:
           enabled,
           wait_until,
           settle_time_ms,
+          remark,
           last_refreshed_at,
           last_error
         FROM cookie_refresh_tasks
@@ -74,6 +76,44 @@ class TaskRepository:
         if row is None:
             return None
         return ensure_utc(row["next_poll_at"])
+
+    def fetch_task_by_id(self, task_id: int) -> Optional[CookieRefreshTask]:
+        """按 id 读取单条任务。"""
+        query = _sql_text("""
+        SELECT
+          id,
+          site_url,
+          reload_url,
+          state_scope_url,
+          storage_state,
+          session_storage,
+          next_poll_at,
+          refresh_interval_seconds,
+          retry_interval_seconds,
+          headless,
+          browser_channel,
+          enabled,
+          wait_until,
+          settle_time_ms,
+          remark,
+          last_refreshed_at,
+          last_error
+        FROM cookie_refresh_tasks
+        WHERE id = :task_id
+        LIMIT 1
+        """)
+        with self.connect() as connection:
+            row = connection.execute(query, {"task_id": task_id}).mappings().first()
+        if row is None:
+            return None
+        return CookieRefreshTask.from_row(dict(row))
+
+    def build_headers_for_task(self, task_id: int) -> dict[str, str]:
+        """从数据库任务读取 cookies，并转成 HTTP headers dict。"""
+        task = self.fetch_task_by_id(task_id)
+        if task is None:
+            raise KeyError(f"Task not found: {task_id}")
+        return storage_state_to_headers(task.storage_state)
 
     def mark_success(
         self,
@@ -147,6 +187,7 @@ class TaskRepository:
         browser_channel: str = "chrome",
         wait_until: str = "networkidle",
         settle_time_ms: int = 3000,
+        remark: str = "",
     ) -> int:
         """插入首条 storage state 刷新任务。"""
         now_text = utc_now().isoformat()
@@ -165,6 +206,7 @@ class TaskRepository:
             enabled,
             wait_until,
             settle_time_ms,
+            remark,
             last_refreshed_at,
             last_error,
             updated_at
@@ -182,6 +224,7 @@ class TaskRepository:
             TRUE,
             :wait_until,
             :settle_time_ms,
+            :remark,
             :last_refreshed_at,
             '',
             :updated_at
@@ -201,6 +244,7 @@ class TaskRepository:
             "browser_channel": browser_channel,
             "wait_until": wait_until,
             "settle_time_ms": settle_time_ms,
+            "remark": remark,
             "last_refreshed_at": now_text,
             "updated_at": now_text,
         }

@@ -46,6 +46,7 @@ class BootstrapConfig:
     browser_channel: str = "chrome"
     wait_until: str = "networkidle"
     settle_time_ms: int = 3000
+    remark: str = ""
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
@@ -66,6 +67,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--browser-channel", default="chrome")
     parser.add_argument("--wait-until", default="networkidle")
     parser.add_argument("--settle-time-ms", type=int, default=3000)
+    parser.add_argument("--remark", default="", help="Optional remark stored in database.")
     parser.add_argument("--log-level", default="INFO")
     return parser
 
@@ -155,6 +157,7 @@ async def run_bootstrap(config: BootstrapConfig) -> int:
                             browser_channel=config.browser_channel,
                             wait_until=config.wait_until,
                             settle_time_ms=config.settle_time_ms,
+                            remark=config.remark,
                         )
                         print(
                             f"Inserted task id={task_id}, "
@@ -192,6 +195,7 @@ async def async_main() -> None:
         browser_channel=args.browser_channel,
         wait_until=args.wait_until,
         settle_time_ms=args.settle_time_ms,
+        remark=args.remark,
     )
     await run_bootstrap(config)
 

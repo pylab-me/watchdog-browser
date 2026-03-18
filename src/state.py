@@ -47,3 +47,29 @@ def decompress_session_storage(payload: bytes | None) -> SessionStorageMap:
         for origin, values in parsed.items()
         if isinstance(values, dict)
     }
+
+
+def storage_state_to_cookie_header(storage_state_payload: bytes | None) -> str:
+    """把 storage state 里的 cookies 转成标准 Cookie header 字符串。"""
+    storage_state = decompress_storage_state(storage_state_payload)
+    cookies = storage_state.get("cookies", [])
+    if not isinstance(cookies, list):
+        return ""
+    parts: list[str] = []
+    for cookie in cookies:
+        if not isinstance(cookie, dict):
+            continue
+        name = str(cookie.get("name") or "").strip()
+        value = str(cookie.get("value") or "")
+        if not name:
+            continue
+        parts.append(f"{name}={value}")
+    return "; ".join(parts)
+
+
+def storage_state_to_headers(storage_state_payload: bytes | None) -> dict[str, str]:
+    """把 storage state 里的 cookies 转成 HTTP headers dict。"""
+    cookie_header = storage_state_to_cookie_header(storage_state_payload)
+    if not cookie_header:
+        return {}
+    return {"Cookie": cookie_header}

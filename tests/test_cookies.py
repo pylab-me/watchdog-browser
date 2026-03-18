@@ -5,6 +5,8 @@ from src.state import (
     compress_storage_state,
     decompress_session_storage,
     decompress_storage_state,
+    storage_state_to_cookie_header,
+    storage_state_to_headers,
 )
 
 
@@ -23,6 +25,18 @@ class CookiesTest(unittest.TestCase):
         payload = compress_session_storage(session_storage)
         restored = decompress_session_storage(payload)
         self.assertEqual(restored, session_storage)
+
+    def test_storage_state_to_headers(self) -> None:
+        storage_state = {
+            "cookies": [
+                {"name": "sid", "value": "abc", "domain": ".example.com"},
+                {"name": "uid", "value": "42", "domain": ".example.com"},
+            ],
+            "origins": [],
+        }
+        payload = compress_storage_state(storage_state)
+        self.assertEqual(storage_state_to_cookie_header(payload), "sid=abc; uid=42")
+        self.assertEqual(storage_state_to_headers(payload), {"Cookie": "sid=abc; uid=42"})
 
 
 if __name__ == "__main__":

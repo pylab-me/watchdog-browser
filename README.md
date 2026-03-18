@@ -43,6 +43,8 @@
   `context.storage_state(indexed_db=True)` 的 JSON，经 `zlib.compress(...)` 压缩后的二进制。
 - `session_storage BYTEA`
   当前目标 origin 的 `sessionStorage` JSON，经 `zlib.compress(...)` 压缩后的二进制。
+- `remark`
+  给任务写备注，便于区分站点、用途或账号。
 - `next_poll_at`
   下次调度时间。调度器会优先执行小于等于当前时间的任务。
 - `refresh_interval_seconds`
@@ -137,7 +139,8 @@ python bootstrap_task.py --site-url https://example.com
 python bootstrap_task.py ^
   --site-url https://example.com ^
   --reload-url https://example.com/account ^
-  --state-scope-url https://example.com
+  --state-scope-url https://example.com ^
+  --remark "Liepin main account"
 ```
 
 ## 启动调度器
@@ -166,6 +169,23 @@ python src\main.py
   Postgres 访问层。
 - [src/state.py](/M:/CodeHub/watchdog-browser/src/state.py)
   `storage_state` / `session_storage` 压缩与解压。
+
+## 工具函数
+
+如果你需要把数据库里某条任务的 cookies 转成 HTTP 请求头，可直接使用：
+
+```python
+from src.db import TaskRepository
+
+repo = TaskRepository()
+headers = repo.build_headers_for_task(123)
+```
+
+返回结果是：
+
+```python
+{"Cookie": "sid=abc; uid=42"}
+```
 
 ## 验证
 
