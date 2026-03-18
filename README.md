@@ -175,7 +175,7 @@ python src\main.py
 如果你需要把数据库里某条任务的 cookies 转成 HTTP 请求头，可直接使用：
 
 ```python
-from src.db import TaskRepository
+from watchdog_browser import TaskRepository
 
 repo = TaskRepository()
 headers = repo.build_headers_for_task(123)
@@ -186,6 +186,52 @@ headers = repo.build_headers_for_task(123)
 ```python
 {"Cookie": "sid=abc; uid=42"}
 ```
+
+也可以直接使用包级函数：
+
+```python
+from watchdog_browser import build_headers_for_task
+
+
+headers = build_headers_for_task(123)
+```
+
+## 打包安装
+
+本项目已经提供 `setup.py`，可以直接打 wheel 并安装：
+
+```bash
+python -m pip install build
+python -m build --wheel
+python -m pip install dist\watchdog_browser-0.1.0-py3-none-any.whl
+```
+
+安装后可直接调用：
+
+```python
+from watchdog_browser import TaskRepository, build_headers_for_task
+
+
+repo = TaskRepository()
+headers = repo.build_headers_for_task(123)
+headers2 = build_headers_for_task(123)
+```
+
+安装后也会提供两个命令行入口：
+
+```bash
+watchdog-browser-bootstrap --site-url https://example.com
+watchdog-browser-worker
+```
+
+## GitHub Actions
+
+已添加 GitHub Actions 工作流 [build-wheel.yml](/M:/CodeHub/watchdog-browser/.github/workflows/build-wheel.yml)：
+
+- 构建 wheel
+- 安装 wheel
+- 验证 `from watchdog_browser import TaskRepository, build_headers_for_task`
+- 上传 wheel 构建产物
 
 ## 验证
 
