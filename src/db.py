@@ -12,7 +12,7 @@ except ImportError:
 if TYPE_CHECKING:
     from sqlalchemy.engine import Connection
 
-from engine import get_engine
+from .engine import get_engine
 
 from .models import CookieRefreshTask, ensure_utc, utc_now
 from .state import storage_state_to_headers
