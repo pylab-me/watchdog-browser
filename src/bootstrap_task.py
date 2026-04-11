@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import logging
+import os
 import sys
 import threading
 from dataclasses import dataclass
@@ -105,14 +106,17 @@ async def run_bootstrap(config: BootstrapConfig) -> int:
     state_scope_url = config.state_scope_url or config.site_url
     temp_dir = TemporaryDirectory()
 
+    final_headless_decision = bool(os.environ.get("IS_PROD", 0)) or False
+
     try:
         async with async_playwright() as playwright:
             context: BrowserContext = await playwright.chromium.launch_persistent_context(
                 user_data_dir=temp_dir.name,
                 channel=config.browser_channel,
-                headless=False,
+                headless=final_headless_decision,
                 ignore_default_args=["--enable-automation"],
                 args=[
+                    "--disable-gpu",
                     "--disable-blink-features=AutomationControlled",
                     "--disable-dev-shm-usage",
                     "--no-first-run",
@@ -153,7 +157,7 @@ async def run_bootstrap(config: BootstrapConfig) -> int:
                             next_poll_at=utc_now(),
                             refresh_interval_seconds=config.refresh_interval_seconds,
                             retry_interval_seconds=config.retry_interval_seconds,
-                            headless=True,
+                            headless=final_headless_decision,
                             browser_channel=config.browser_channel,
                             wait_until=config.wait_until,
                             settle_time_ms=config.settle_time_ms,

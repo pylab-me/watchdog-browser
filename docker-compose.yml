@@ -4,9 +4,10 @@ services:
       context: .
       dockerfile: Dockerfile
     image: pylab/watchdog-browser
-    container_name: watchdog-worker
+    container_name: watchdog-browser
     environment:
       PYTHONUNBUFFERED: "1"
+      IS_PROD: "1"
       # WATCHDOG_BROWSER_LOCAL_DSN: postgresql://watchdog_user:watchdog_password@db:5432/watchdog_db
     restart: on-failure
     # 如果你想运行另一个 entry_point (bootstrap)，可以取消下面注释：

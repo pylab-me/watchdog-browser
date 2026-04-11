@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -108,11 +109,14 @@ class CookieRefreshService:
         existing_session_storage = decompress_session_storage(task.session_storage)
         refreshed_at = utc_now()
 
+        final_headless_decision: bool = True if bool(os.environ.get("IS_PROD", 0)) else task.headless
+
         async with async_playwright() as playwright:
             browser: Browser = await playwright.chromium.launch(
                 channel=task.browser_channel,
-                headless=task.headless,
+                headless=final_headless_decision,
                 args=[
+                    "--disable-gpu",
                     "--disable-blink-features=AutomationControlled",
                     "--disable-dev-shm-usage",
                     "--no-first-run",
